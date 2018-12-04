@@ -55,18 +55,15 @@ def myFormatPrint(string, length=0, align='l', symbol='\s'):
     i = 0
     str_sp = 0
     while i < str_len:
-        if letterorcharacter(string[i]):
-            str_sp += 1
-        else:
-            str_sp += 2
+        str_sp += 1 if letterorcharacter(string[i]) else 2
         i += 1
     if align == 'l':
         return string + temp[str_sp:]
     if align == 'r':
         return temp[:-str_sp] + string
     if align == 'c':
-        l_c = (length - str_len)//2
-        r_c = length - l_c - str_len
+        l_c = (length - str_sp)//2
+        r_c = length - l_c - str_sp
         return temp[:-(str_sp+r_c)] + string + temp[l_c+str_sp:]
 
 def loginRequest(user, passwd):
@@ -187,23 +184,31 @@ if __name__ == '__main__':
     args = parser.parse_args()
     
     if args.do in ['login','Login', 'l']:
-        response = ast.literal_eval(loginRequest(args.user, args.passwd))
-        if response is None or response['reply_code'] != 1:
+        response = loginRequest(args.user, args.passwd)
+        if response is None:
             print('请检查网络连接或检查用户名和密码')
-            print('服务器信息：', response['reply_msg'])
         else:
-            time.sleep(2)
-            printLoginInformation(response)
-    if args.do in ['logout','Logout', 'exit']:
-        response = ast.literal_eval(logoutRequest())
-        if response is None or response['reply_code'] != 101:
-            print('请检查网络连接或服务器信息')
-            print('服务器信息：', response['reply_msg'])
+            response = ast.literal_eval(response)
+            if response['reply_code'] != 1:
+                print('请检查网络连接或检查用户名和密码')
+                print('服务器信息：', response['reply_msg'])
+            else:
+                time.sleep(2)
+                printLoginInformation(response)
+    if args.do in ['logout','Logout', 'exit','o']:
+        response = logoutRequest()
+        if response is None:
+            pass
         else:
-            print(myFormatPrint('', 35, align='l', symbol = '*'))
-            print(myFormatPrint('服务器返回码：', 15, align='r', symbol = ' ')+str(response['reply_code']))
-            print(myFormatPrint('当前状态：', 15, align='r', symbol = ' ')+response['reply_msg'])
-            print(myFormatPrint('', 35, align='l', symbol = '*'))
+            response = ast.literal_eval(response)
+            if response['reply_code'] != 101:
+                print('请检查网络连接或服务器信息')
+                print('服务器信息：', response['reply_msg'])
+            else:
+                print(myFormatPrint('', 35, align='l', symbol = '*'))
+                print(myFormatPrint('服务器返回码：', 15, align='r', symbol = ' ')+str(response['reply_code']))
+                print(myFormatPrint('当前状态：', 15, align='r', symbol = ' ')+response['reply_msg'])
+                print(myFormatPrint('', 35, align='l', symbol = '*'))
     if args.do in ['i','I']:
         total_time_resp = getInformation()
         online_info_resp = getOnline()
